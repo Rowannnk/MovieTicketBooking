@@ -1,15 +1,44 @@
 import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { MenuIcon, SearchIcon, TicketPlus, XIcon } from "lucide-react";
-import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
+import {
+  MenuIcon,
+  SearchIcon,
+  TicketPlus,
+  UserIcon,
+  XIcon,
+} from "lucide-react";
+import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
-  const { openSignIn } = useClerk();
-
+  // const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  const { user, logout } = useAppContext();
+
+  // const { favoriteMovies } = useAppContext();
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     try {
+  //       const decoded = jwtDecode(token);
+  //       // decoded looks like { userId: "...", role: "...", iat: ..., exp: ... }
+  //       // If your token does NOT have the user's name/email, you might fetch from backend here.
+  //       setUser({
+  //         id: decoded.userId,
+  //         role: decoded.role,
+  //         name: decoded.name || "User",
+  //       });
+  //     } catch (err) {
+  //       console.error("Invalid token", err);
+  //     }
+  //   }
+  // }, []);
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -73,6 +102,7 @@ const Navbar = () => {
         >
           Releases
         </NavLink>
+        {/* {favoriteMovies.length > 0 && ( */}
         <NavLink
           onClick={() => {
             scrollTo(0, 0);
@@ -90,21 +120,32 @@ const Navbar = () => {
         <SearchIcon className="w-6 h-6 cursor-pointer max-md:hidden" />
         {!user ? (
           <button
-            onClick={openSignIn}
+            onClick={() => navigate("/login")}
             className="sm:px-7 sm:py-2 px-4 py-1 bg-primary hover:bg-primary-dull transition rounded-full cursor-pointer font-medium"
           >
             Login
           </button>
         ) : (
-          <UserButton>
-            <UserButton.MenuItems>
-              <UserButton.Action
-                onClick={() => navigate("/my-bookings")}
-                label="My Bookings"
-                labelIcon={<TicketPlus width={15} />}
-              />
-            </UserButton.MenuItems>
-          </UserButton>
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => navigate("/my-bookings")}
+            title="Go to Profile"
+          >
+            <UserIcon className="w-6 h-6 text-primary" />
+            <span className="text-primary font-semibold">
+              {user.name || "User"}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLogout();
+              }}
+              className="cursor-pointer ml-3 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+              title="Logout"
+            >
+              Logout
+            </button>
+          </div>
         )}
       </div>
       <MenuIcon

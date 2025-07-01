@@ -1,10 +1,7 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true,
-  },
   name: {
     type: String,
     required: true,
@@ -13,10 +10,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  image: {
+  password: {
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    default: "user",
+  },
+  favorites: [{ type: String, ref: "Movie" }],
 });
 
 const User = mongoose.model("User", userSchema);
