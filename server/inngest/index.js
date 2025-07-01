@@ -1,5 +1,7 @@
 import { Inngest } from "inngest";
 import User from "../models/User.js";
+import Booking from "../models/Booking.js";
+import Show from "../models/Show.js";
 
 //need to sync with inngest (https://app.inngest.com/env/production/apps) after deploying on vercel
 
@@ -49,6 +51,35 @@ const userUpdation = inngest.createFunction(
     await User.findByIdAndUpdate(id, userData);
   }
 );
+//inngest function to cancel booking and release seats of show after 10 minutes of booking created if payment is not made
+//scheduling feature
+const deleteSeatsAndDeleteBooking = inngest.createFunction(
+  { id: "release-seats-delete-booking" },
+  { event: "app/checkpayment" },
+  async ({ event, step }) => {
+    const tenMinutesLater = new Date(Date.now()) + 10 * 60 * 1000;
+    await step.sleepUntil("wait-for-10-minutes", tenMinutesLater);
+    await step.run("check-payment-status", async () => {
+      const bookingId = event.data.bookingId;
+      const booking = await Booking.findById(bookingId);
+      //if payment is not made, release seats and delete booking
+      if (!booking.isPaid) {
+        const show = await Show.findById(booking.show);
+        booking.bookedSeats.forEach((seat) => {
+          delete show.occupiedSeats[seat];
+        });
+        show.markModified("occupiedSeats");
+        await show.save();
+        await Booking.findByIdAndDelete(booking._id);
+      }
+    });
+  }
+);
 
 // Create an empty array where we'll export future Inngest functions
-export const functions = [userCreation, userDeletion, userUpdation];
+export const functions = [
+  userCreation,
+  userDeletion,
+  userUpdation,
+  deleteSeatsAndDeleteBooking,
+];
