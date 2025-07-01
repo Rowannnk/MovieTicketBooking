@@ -30,10 +30,10 @@ export const stripeWebhooks = async (request, response) => {
           paymentLink: "",
         });
         //send confiramtion email
-        await inngest.send({
-          name: "app/show.booked",
-          data: { bookingId },
-        });
+        // await inngest.send({
+        //   name: "app/show.booked",
+        //   data: { bookingId },
+        // });
         break;
       }
       default:
